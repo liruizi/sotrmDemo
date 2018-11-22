@@ -24,7 +24,7 @@ public class TestWordSpout extends BaseRichSpout {
 	private static final long serialVersionUID = -4698318354951455579L;
 	SpoutOutputCollector _collector;
 
-	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+	public void open(@SuppressWarnings("rawtypes") Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		_collector = collector;
 	}
 

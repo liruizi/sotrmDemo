@@ -1,9 +1,19 @@
 package com.lrz.storm;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.StormTopology;
+import org.apache.storm.kafka.BrokerHosts;
+import org.apache.storm.kafka.KafkaSpout;
+import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.StringScheme;
+import org.apache.storm.kafka.ZkHosts;
+import org.apache.storm.spout.SchemeAsMultiScheme;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
@@ -12,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import com.lrz.storm.bolt.AnalysisKafkaBolt;
 import com.lrz.storm.bolt.DataProcesKafkaBolt;
 import com.lrz.storm.bolt.SaveDataProcesKafkaBolt;
-import com.lrz.storm.spout.TestWordSpout;
 
 /**
  * 
@@ -23,6 +32,13 @@ import com.lrz.storm.spout.TestWordSpout;
  */
 public class LrzTopology {
 	private static final Logger logger = LoggerFactory.getLogger(LrzTopology.class);
+	
+	
+	private static final String KAFKA_SPOUT_ID = "kafka_spout";
+    private static final String KAFKA_ANALYS_BOLT_ID = "kafka_analysis_bolt";
+    private static final String DATA_PROCES_BOLT_ID = "data_proces_bolt";
+    private static final String TOPIC_NAME = "topic";
+    private static final String KAFKA_NAME = "/kafka";
 
 	/**
 	 * @param strom
@@ -44,10 +60,9 @@ public class LrzTopology {
 		 * 7）Local or shuffle Grouping </br>
 		 * 8）customGrouping （自定义的Grouping）</br>
 		 */
-		/*String topic = "topic";
 		BrokerHosts zkHosts = new ZkHosts("192.168.164.133:2181,192.168.164.134:2181,192.168.164.135:2181/kafka");
 		// 初始化配置信息
-		SpoutConfig spoutConfig = new SpoutConfig(zkHosts, topic, "/kafka", UUID.randomUUID().toString());
+		SpoutConfig spoutConfig = new SpoutConfig(zkHosts, TOPIC_NAME, KAFKA_NAME, UUID.randomUUID().toString());
 		// zkServers 列表
 		List<String> zkServers = new ArrayList<String>() ;
 	    zkServers.add("192.168.164.133");
@@ -62,29 +77,28 @@ public class LrzTopology {
 		// (String)getValue(0); 获取
 		spoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		spoutConfig.startOffsetTime = kafka.api.OffsetRequest.EarliestTime();
-		*/
+		 KafkaSpout spout = new KafkaSpout(spoutConfig);
 		
 		/**
 		 * 第一步： 消息源Spout是storm的Topology中的消息生产者 KafkaConfig.createKafkaSpout()
 		 */
-		builder.setSpout("kafka_spout", new TestWordSpout()	, 5);
-//		builder.setSpout("kafka_spout", new SentenceSpout()	, 2);
+//		builder.setSpout("kafka_spout", new TestWordSpout()	, 5);
+		builder.setSpout(KAFKA_SPOUT_ID, spout, 2);
 
 		/**
 		 * 第二步：解析 kafka_spout 获取需要的数据 ,shuffleGrouping 是最常用的流分组方式，它随机地分发元组到Bolt上的任务
 		 */
-		builder.setBolt("kafka_analysisBolt", new AnalysisKafkaBolt(), 5).shuffleGrouping("kafka_spout");
+		builder.setBolt(KAFKA_ANALYS_BOLT_ID, new AnalysisKafkaBolt(), 5).shuffleGrouping(KAFKA_SPOUT_ID);
 
 		/**
 		 * 第三步：进行数据拆分，逻辑运算处理 如果下面有逻辑，继续添加 Bolt 方法进行处理
 		 */
-		builder.setBolt("data_procesbolt", new DataProcesKafkaBolt(), 2).shuffleGrouping("kafka_analysisBolt");
+		builder.setBolt(DATA_PROCES_BOLT_ID, new DataProcesKafkaBolt(), 2).shuffleGrouping(KAFKA_ANALYS_BOLT_ID);
 
 		/**
 		 * 第四步：进行保存数据
 		 */
-		builder.setBolt("save_data_procesbolt", new SaveDataProcesKafkaBolt(), 2).fieldsGrouping("data_procesbolt",
-				new Fields("data"));
+		builder.setBolt("save_data_procesbolt", new SaveDataProcesKafkaBolt(), 2).fieldsGrouping(DATA_PROCES_BOLT_ID,new Fields("data"));
 		/**
 		 * 第五步：创建Topology任务
 		 */
@@ -92,9 +106,10 @@ public class LrzTopology {
 
 		// 配置参数信息
 		Config conf = new Config();
+		conf.setNumWorkers(1);
 		conf.setDebug(false);
 		//获取本地测试文件
-		conf.put("wordsFile", "D:\\test.txt");
+//		conf.put("wordsFile", "D:\\test.txt");
 		if (args != null && args.length > 0) {
 			// conf.setNumWorkers(3);
 			try {

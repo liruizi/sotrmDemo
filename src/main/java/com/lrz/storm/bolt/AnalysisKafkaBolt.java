@@ -26,6 +26,7 @@ import com.lrz.storm.util.DateUtil;
  * @Data:2018年11月6日 下午5:01:27
  */
 public class AnalysisKafkaBolt extends BaseRichBolt {
+	
 	private static final Logger logger = LoggerFactory.getLogger(AnalysisKafkaBolt.class);
 	/**
 	 * 
@@ -41,6 +42,7 @@ public class AnalysisKafkaBolt extends BaseRichBolt {
 	/**
 	 * 初始化collector
 	 */
+	@SuppressWarnings("rawtypes")
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
 
@@ -51,6 +53,7 @@ public class AnalysisKafkaBolt extends BaseRichBolt {
 	 */
 	public void execute(Tuple input) {
 		String kline = input.getStringByField("str");
+		logger.info(kline);
 		if (null != kline && !"".equals(kline) && kline.indexOf("{") != -1 && kline.indexOf("}") != -1) {
 			JSONObject resJson = JSON.parseObject(kline);
 			String ts = resJson.getString("ts");

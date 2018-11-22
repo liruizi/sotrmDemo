@@ -54,7 +54,6 @@ public class SaveDataProcesKafkaBolt extends BaseRichBolt {
 	@Override
 	public void cleanup() {
 		System.out.println("结束。。。。。。。。。。。。。。。");
-
 	}
 
 }

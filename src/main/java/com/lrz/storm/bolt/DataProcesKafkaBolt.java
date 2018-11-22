@@ -32,6 +32,7 @@ public class DataProcesKafkaBolt extends BaseRichBolt {
 	/**
 	 * 初始化collector
 	 */
+	@SuppressWarnings("rawtypes")
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
 	}

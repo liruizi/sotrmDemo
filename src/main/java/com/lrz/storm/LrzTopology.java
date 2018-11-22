@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.lrz.storm.bolt.AnalysisKafkaBolt;
 import com.lrz.storm.bolt.DataProcesKafkaBolt;
-import com.lrz.storm.bolt.SaveDataProcesKafkaBolt;
+import com.lrz.storm.bolt.RedisStoreBolt;
 
 /**
  * 
@@ -77,7 +77,7 @@ public class LrzTopology {
 		// (String)getValue(0); 获取
 		spoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
 		spoutConfig.startOffsetTime = kafka.api.OffsetRequest.EarliestTime();
-		 KafkaSpout spout = new KafkaSpout(spoutConfig);
+		KafkaSpout spout = new KafkaSpout(spoutConfig);
 		
 		/**
 		 * 第一步： 消息源Spout是storm的Topology中的消息生产者 KafkaConfig.createKafkaSpout()
@@ -98,7 +98,7 @@ public class LrzTopology {
 		/**
 		 * 第四步：进行保存数据
 		 */
-		builder.setBolt("save_data_procesbolt", new SaveDataProcesKafkaBolt(), 2).fieldsGrouping(DATA_PROCES_BOLT_ID,new Fields("data"));
+		builder.setBolt("RedisStoreBolt", new RedisStoreBolt(), 2).fieldsGrouping(DATA_PROCES_BOLT_ID,new Fields("data"));
 		/**
 		 * 第五步：创建Topology任务
 		 */

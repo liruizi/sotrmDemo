@@ -10,6 +10,10 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.lrz.storm.util.RedisPoolManager;
+
+import redis.clients.jedis.Jedis;
+
 /**
  * 
  * @Description:获取上一层数据，进行逻辑处理
@@ -17,8 +21,8 @@ import org.slf4j.LoggerFactory;
  * @version:1.0.0
  * @Data:2018年11月6日 下午6:13:21
  */
-public class SaveDataProcesKafkaBolt extends BaseRichBolt {
-	private static final Logger logger = LoggerFactory.getLogger(SaveDataProcesKafkaBolt.class);
+public class RedisStoreBolt extends BaseRichBolt {
+	private static final Logger logger = LoggerFactory.getLogger(RedisStoreBolt.class);
 	/**
 	 * 
 	 */
@@ -37,6 +41,8 @@ public class SaveDataProcesKafkaBolt extends BaseRichBolt {
 	 * 在SpoutTracker类中被调用，每调用一次就可以向storm集群中发射一条数据（一个tuple元组），该方法会被不停的调用
 	 */
 	public void execute(Tuple input) {
+		Jedis jedis=RedisPoolManager.createInstance(); 
+		jedis.set("", "");
 		String ts = input.getStringByField("data");
 		String ch = input.getStringByField("ch");
 		String symbol = input.getStringByField("symbol");
@@ -49,11 +55,6 @@ public class SaveDataProcesKafkaBolt extends BaseRichBolt {
 	 */
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-	}
-
-	@Override
-	public void cleanup() {
-		System.out.println("结束。。。。。。。。。。。。。。。");
 	}
 
 }

@@ -46,6 +46,9 @@ public class LrzTopology {
 	 * @TODO strom 程序只允许有一个 main 方法， 多了会报错
 	 */
 	public static void main(String[] args) {
+		/**
+		 * 增加测试
+		 */
 		logger.info("开始执行..........");
 
 		TopologyBuilder builder = new TopologyBuilder();
